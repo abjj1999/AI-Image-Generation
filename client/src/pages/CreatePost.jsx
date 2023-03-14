@@ -15,16 +15,66 @@ const CreatePost = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // console.log(form)
   };
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const generateImage  = async() => {
+    
+    if(form.prompt){
+      try {
+        setGeneratingImg(true);
+        const response = await fetch("http://localhost:8080/api/v1/dalle", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: form.prompt }),
+        })
+        const data = await response.json();
+        setForm({ ...form, photo: `data:image/jpeg;base64,${data.photo}` });
+      } catch (error) {
+        alert(error);
+      }
+      finally{
+        setGeneratingImg(false);
+      }
+    }
+    else {
+      alert("Please enter a prompt");
+    }
   };
   const handleSurpriseMe = (e) => {
     e.preventDefault();
-    const randomPrompt = getRandomPrompt();
+    const randomPrompt = getRandomPrompt(form.prompt);
     setForm({ ...form, prompt: randomPrompt });
   };
-  const handleGenerateImage = () => {};
+  
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+
+    if(form.name && form.photo){
+      setLoading(true);
+      try {
+        const res = await fetch("http://localhost:8080/api/v1/posts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(form),
+        })
+        await res.json();
+        // setLoading(false);
+        navigate("/");
+      } catch (error) {
+        alert(error);
+      }
+      finally{
+        setLoading(false);
+      }
+    }else {
+      alert("Please enter your name and generate an image");
+    }
+  };
+
   return (
     <section className="max-w-7xl mx-auto">
       <div className="">
@@ -37,7 +87,7 @@ const CreatePost = () => {
         </p>
       </div>
 
-      <form onSubmit="" className="mt-16 max-w-3xl">
+      <form onSubmit={handleSubmit}  className="mt-16 max-w-3xl">
         <div className="flex flex-col gap-5">
           <Form
             label="Your name"
@@ -50,9 +100,9 @@ const CreatePost = () => {
           <Form
             label="Prompt"
             type="text"
+            name="prompt"
             value={form.prompt}
             handleChange={handleChange}
-            name="Prompt"
             placeholder="A Space Shuttle flying above Cape Town, digital art"
             isSurprise
             handleSurpriseMe={handleSurpriseMe}
@@ -79,7 +129,7 @@ const CreatePost = () => {
           </div>
         </div>
         <div className="mt-5 flex gap-5">
-          <button onClick={handleGenerateImage} type="button"  className="
+          <button onClick={generateImage } type="button"  className="
             text-white bg-[#6469ff]  rounded-md text-sm font-semibold w-full sm:w-auto px-5 py-2.5
           ">
 
