@@ -27,7 +27,7 @@ const Home = () => {
     const fetchPosts = async() => {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:8080/api/v1/posts", {
+        const res = await fetch("https://ai-g-abjj1999.onrender.com/api/v1/posts", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
